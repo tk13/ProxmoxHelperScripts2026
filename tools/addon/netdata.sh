@@ -28,7 +28,7 @@ CM="${GN}✓${CL}"
 silent() { "$@" >/dev/null 2>&1; }
 
 # Telemetry
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/api.func) 2>/dev/null || true
+source <(curl -fsSL https://raw.githubusercontent.com/tk13/ProxmoxHelperScripts2026/main/misc/api.func) 2>/dev/null || true
 declare -f init_tool_telemetry &>/dev/null && init_tool_telemetry "netdata" "addon"
 
 set -e

@@ -27,14 +27,14 @@ MARIADB_DB_NAME="grimmory_db" MARIADB_DB_USER="grimmory_user" MARIADB_DB_EXTRA_G
 fetch_and_deploy_gh_release "grimmory" "grimmory-tools/grimmory" "tarball"
 
 msg_info "Building Frontend"
-cd /opt/grimmory/grimmory-ui
+cd /opt/grimmory/frontend
 $STD npm install --force
 $STD npm run build --configuration=production
 msg_ok "Built Frontend"
 
 msg_info "Embedding Frontend into Backend"
 mkdir -p /opt/grimmory/grimmory-api/src/main/resources/static
-cp -r /opt/grimmory/grimmory-ui/dist/grimmory/browser/* /opt/grimmory/grimmory-api/src/main/resources/static/
+cp -r /opt/grimmory/frontend/dist/grimmory/browser/* /opt/grimmory/grimmory-api/src/main/resources/static/
 msg_ok "Embedded Frontend into Backend"
 
 msg_info "Creating Environment"
