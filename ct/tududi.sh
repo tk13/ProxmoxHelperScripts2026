@@ -44,7 +44,7 @@ function update_script() {
     fi
     msg_ok "Backed up env file"
 
-    CLEAN_INSTALL=1 fetch_and_deploy_gh_release "tududi" "chrisvel/tududi" "tarball" "latest" "/opt/tududi"
+    CLEAN_INSTALL=1 fetch_and_deploy_gh_release "tududi" "chrisvel/tududi" "tarball" "v1.1.0-rc.4" "/opt/tududi"
 
     msg_info "Updating Tududi"
     cd /opt/tududi
