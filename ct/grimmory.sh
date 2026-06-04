@@ -63,22 +63,22 @@ function update_script() {
     msg_ok "Built Frontend"
 
     msg_info "Embedding Frontend into Backend"
-    mkdir -p /opt/booklore/booklore-api/src/main/resources/static
-    cp -r /opt/grimmory/frontend/dist/booklore/browser/* /opt/booklore/booklore-api/src/main/resources/static/
+    mkdir -p /opt/grimmory/backend/src/main/resources/static
+    cp -r /opt/grimmory/frontend/dist/grimmory/browser/* /opt/grimmory/backend/src/main/resources/static/
     msg_ok "Embedded Frontend into Backend"
 
     msg_info "Building Backend"
-    cd /opt/booklore/booklore-api
-    APP_VERSION=$(get_latest_github_release "booklore-app/BookLore")
+    cd /opt/grimmory/backend
+    APP_VERSION=$(get_latest_github_release "grimmory-tools/grimmory")
     yq eval ".app.version = \"${APP_VERSION}\"" -i src/main/resources/application.yaml
     $STD ./gradlew clean build -x test --no-daemon
-    mkdir -p /opt/booklore/dist
-    JAR_PATH=$(find /opt/booklore/booklore-api/build/libs -maxdepth 1 -type f -name "booklore-api-*.jar" ! -name "*plain*" | head -n1)
+    mkdir -p /opt/grimmory/dist
+    JAR_PATH=$(find /opt/grimmory/backend/build/libs -maxdepth 1 -type f -name "backend-*.jar" ! -name "*plain*" | head -n1)
     if [[ -z "$JAR_PATH" ]]; then
       msg_error "Backend JAR not found"
       exit
     fi
-    cp "$JAR_PATH" /opt/booklore/dist/app.jar
+    cp "$JAR_PATH" /opt/grimmory/dist/app.jar
     msg_ok "Built Backend"
 
     if systemctl is-active --quiet nginx 2>/dev/null; then
@@ -88,16 +88,16 @@ function update_script() {
       msg_ok "Removed Nginx"
     fi
 
-    if ! grep -q "^SERVER_PORT=" /opt/booklore_storage/.env 2>/dev/null; then
-      echo "SERVER_PORT=6060" >>/opt/booklore_storage/.env
+    if ! grep -q "^SERVER_PORT=" /opt/grimmory_storage/.env 2>/dev/null; then
+      echo "SERVER_PORT=6060" >>/opt/grimmory_storage/.env
     fi
 
-    sed -i 's|ExecStart=.*|ExecStart=/usr/bin/java -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+UseCompactObjectHeaders -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -jar /opt/booklore/dist/app.jar|' /etc/systemd/system/booklore.service
+    sed -i 's|ExecStart=.*|ExecStart=/usr/bin/java -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+UseCompactObjectHeaders -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -jar /opt/grimmory/dist/app.jar|' /etc/systemd/system/grimmory.service
     systemctl daemon-reload
 
     msg_info "Starting Service"
-    systemctl start booklore
-    rm -rf /opt/booklore_bak
+    systemctl start grimmory
+    rm -rf /opt/grimmory_bak
     msg_ok "Started Service"
     msg_ok "Updated successfully!"
   fi

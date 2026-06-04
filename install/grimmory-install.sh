@@ -33,8 +33,8 @@ $STD npm run build --configuration=production
 msg_ok "Built Frontend"
 
 msg_info "Embedding Frontend into Backend"
-mkdir -p /opt/grimmory/grimmory-api/src/main/resources/static
-cp -r /opt/grimmory/frontend/dist/grimmory/browser/* /opt/grimmory/grimmory-api/src/main/resources/static/
+mkdir -p /opt/grimmory/backend/src/main/resources/static
+cp -r /opt/grimmory/frontend/dist/grimmory/browser/* /opt/grimmory/backend/src/main/resources/static/
 msg_ok "Embedded Frontend into Backend"
 
 msg_info "Creating Environment"
@@ -53,12 +53,12 @@ EOF
 msg_ok "Created Environment"
 
 msg_info "Building Backend"
-cd /opt/grimmory/grimmory-api
+cd /opt/grimmory/backend
 APP_VERSION=$(get_latest_github_release "grimmory-tools/grimmory")
 yq eval ".app.version = \"${APP_VERSION}\"" -i src/main/resources/application.yaml
 $STD ./gradlew clean build -x test --no-daemon
 mkdir -p /opt/grimmory/dist
-JAR_PATH=$(find /opt/grimmory/grimmory-api/build/libs -maxdepth 1 -type f -name "grimmory-api-*.jar" ! -name "*plain*" | head -n1)
+JAR_PATH=$(find /opt/grimmory/backend/build/libs -maxdepth 1 -type f -name "backend-*.jar" ! -name "*plain*" | head -n1)
 if [[ -z "$JAR_PATH" ]]; then
   msg_error "Backend JAR not found"
   exit 153
