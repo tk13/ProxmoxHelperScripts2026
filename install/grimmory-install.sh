@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
+# Modified to be updated for 06-03-2026 from Booklore.
+
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: MickLesk (CanbiZ)
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
-# Source: https://github.com/booklore-app/BookLore
+# Source: https://github.com/grimmory-tools/grimmory
 
 source /dev/stdin <<<"$FUNCTIONS_FILE_PATH"
 color
@@ -21,61 +23,61 @@ JAVA_VERSION="25" setup_java
 NODE_VERSION="22" setup_nodejs
 setup_mariadb
 setup_yq
-MARIADB_DB_NAME="booklore_db" MARIADB_DB_USER="booklore_user" MARIADB_DB_EXTRA_GRANTS="GRANT SELECT ON \`mysql\`.\`time_zone_name\`" setup_mariadb_db
-fetch_and_deploy_gh_release "booklore" "booklore-app/BookLore" "tarball"
+MARIADB_DB_NAME="grimmory_db" MARIADB_DB_USER="grimmory_user" MARIADB_DB_EXTRA_GRANTS="GRANT SELECT ON \`mysql\`.\`time_zone_name\`" setup_mariadb_db
+fetch_and_deploy_gh_release "grimmory" "grimmory-tools/grimmory" "tarball"
 
 msg_info "Building Frontend"
-cd /opt/booklore/booklore-ui
+cd /opt/grimmory/grimmory-ui
 $STD npm install --force
 $STD npm run build --configuration=production
 msg_ok "Built Frontend"
 
 msg_info "Embedding Frontend into Backend"
-mkdir -p /opt/booklore/booklore-api/src/main/resources/static
-cp -r /opt/booklore/booklore-ui/dist/booklore/browser/* /opt/booklore/booklore-api/src/main/resources/static/
+mkdir -p /opt/grimmory/grimmory-api/src/main/resources/static
+cp -r /opt/grimmory/grimmory-ui/dist/grimmory/browser/* /opt/grimmory/grimmory-api/src/main/resources/static/
 msg_ok "Embedded Frontend into Backend"
 
 msg_info "Creating Environment"
-mkdir -p /opt/booklore_storage/{data,books,bookdrop}
-cat <<EOF >/opt/booklore_storage/.env
+mkdir -p /opt/grimmory_storage/{data,books,bookdrop}
+cat <<EOF >/opt/grimmory_storage/.env
 # Database Configuration
 DATABASE_URL=jdbc:mariadb://localhost:3306/${MARIADB_DB_NAME}
 DATABASE_USERNAME=${MARIADB_DB_USER}
 DATABASE_PASSWORD=${MARIADB_DB_PASS}
 
 # App Configuration (Spring Boot mapping from app.* properties)
-APP_PATH_CONFIG=/opt/booklore_storage/data
-APP_BOOKDROP_FOLDER=/opt/booklore_storage/bookdrop
+APP_PATH_CONFIG=/opt/grimmory_storage/data
+APP_BOOKDROP_FOLDER=/opt/grimmory_storage/bookdrop
 SERVER_PORT=6060
 EOF
 msg_ok "Created Environment"
 
 msg_info "Building Backend"
-cd /opt/booklore/booklore-api
-APP_VERSION=$(get_latest_github_release "booklore-app/BookLore")
+cd /opt/grimmory/grimmory-api
+APP_VERSION=$(get_latest_github_release "grimmory-tools/grimmory")
 yq eval ".app.version = \"${APP_VERSION}\"" -i src/main/resources/application.yaml
 $STD ./gradlew clean build -x test --no-daemon
-mkdir -p /opt/booklore/dist
-JAR_PATH=$(find /opt/booklore/booklore-api/build/libs -maxdepth 1 -type f -name "booklore-api-*.jar" ! -name "*plain*" | head -n1)
+mkdir -p /opt/grimmory/dist
+JAR_PATH=$(find /opt/grimmory/grimmory-api/build/libs -maxdepth 1 -type f -name "grimmory-api-*.jar" ! -name "*plain*" | head -n1)
 if [[ -z "$JAR_PATH" ]]; then
   msg_error "Backend JAR not found"
   exit 153
 fi
-cp "$JAR_PATH" /opt/booklore/dist/app.jar
+cp "$JAR_PATH" /opt/grimmory/dist/app.jar
 msg_ok "Built Backend"
 
 msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/booklore.service
+cat <<EOF >/etc/systemd/system/grimmory.service
 [Unit]
-Description=BookLore Java Service
+Description=Grimmory Java Service
 After=network.target mariadb.service
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/booklore/dist
-ExecStart=/usr/bin/java -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+UseCompactObjectHeaders -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -jar /opt/booklore/dist/app.jar
-EnvironmentFile=/opt/booklore_storage/.env
+WorkingDirectory=/opt/grimmory/dist
+ExecStart=/usr/bin/java -XX:+UseG1GC -XX:+UseStringDeduplication -XX:+UseCompactObjectHeaders -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -jar /opt/grimmory/dist/app.jar
+EnvironmentFile=/opt/grimmory_storage/.env
 SuccessExitStatus=143
 TimeoutStopSec=10
 Restart=on-failure
@@ -84,7 +86,7 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable -q --now booklore
+systemctl enable -q --now grimmory
 msg_ok "Created Service"
 
 motd_ssh
