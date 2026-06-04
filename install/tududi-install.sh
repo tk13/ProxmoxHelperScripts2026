@@ -20,7 +20,7 @@ $STD apt install -y \
 msg_ok "Installed Dependencies"
 
 NODE_VERSION="22" setup_nodejs
-fetch_and_deploy_gh_release "tududi" "chrisvel/tududi" "tarball" "latest" "/opt/tududi"
+fetch_and_deploy_gh_release "tududi" "chrisvel/tududi" "tarball" "v1.1.0-rc.4" "/opt/tududi"
 
 msg_info "Configuring Tududi"
 cd /opt/tududi
